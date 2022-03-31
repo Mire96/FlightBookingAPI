@@ -1,7 +1,16 @@
+using GET.FlightBooking.Data.Database;
+using GET.FlightBooking.Data.Interfaces;
+using GET.FlightBooking.Data.Repositories;
+using GET.FlightBooking.Domain.Interfaces;
+using GET.FlightBooking.Domain.Mappers;
+using GET.FlightBooking.Domain.Services;
+using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -32,6 +41,23 @@ namespace GET.FlightBooking.API
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "GET.FlightBooking.API", Version = "v1" });
             });
+
+            //Database context
+            services.AddDbContext<AppDbContext>(options =>
+            {
+                options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"));
+            });
+
+            //Mediator
+            services.AddMediatR(typeof(Startup).Assembly);
+
+            //Services
+            services.AddScoped<IUserService, UserService>();
+            services.AddScoped<IUserRepository, UserRepository>();
+
+            //Mapping profiles
+            services.AddAutoMapper(typeof(UserMappingProfile));
+
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -49,7 +75,6 @@ namespace GET.FlightBooking.API
             app.UseRouting();
 
             app.UseAuthorization();
-
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
